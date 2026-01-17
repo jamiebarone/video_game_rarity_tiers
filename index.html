@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Video Game Rarity Tiers</title>
+  <style>
+    :root{
+      --bg:#0b0f17;
+      --muted:#9fb0c6;
+      --text:#e9f0fb;
+      --line:#233248;
+      --accent:#7aa7ff;
+      --accent2:#a6ffcb;
+      --warn:#ffcc66;
+      --danger:#ff6b8b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 600px at 20% 0%, #121b2b 0%, var(--bg) 60%);
+      color:var(--text);
+    }
+    header{ padding:24px 18px 10px; max-width:1100px; margin:0 auto; }
+    h1{ margin:0; font-size:24px; letter-spacing:.2px; }
+    .sub{ margin:6px 0 0; color:var(--muted); line-height:1.35; max-width: 80ch; }
+    main{
+      max-width:1100px;
+      margin:0 auto;
+      padding:16px 18px 28px;
+      display:grid;
+      gap:14px;
+    }
+    .topbar{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--muted);
+      font-size:12px;
+      background: rgba(0,0,0,0.18);
+      white-space:nowrap;
+    }
+    .btnrow{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    button{
+      background: rgba(122,167,255,0.18);
+      border:1px solid rgba(122,167,255,0.35);
+      color:#eaf3ff;
+      border-radius:12px;
+      padding:10px 12px;
+      cursor:pointer;
+    }
+    button:hover{ background: rgba(122,167,255,0.28); }
+    .ghost{ background: rgba(0,0,0,0.18); border:1px solid var(--line); color:var(--muted); }
+
+    /* Force single column stack */
+    .stack{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+      position:relative;
+      overflow:hidden;
+    }
+    .card::before{
+      content:"";
+      position:absolute;
+      inset:-2px;
+      background: radial-gradient(800px 200px at 10% 0%, rgba(122,167,255,0.18), transparent 60%),
+                  radial-gradient(700px 220px at 90% 20%, rgba(166,255,203,0.12), transparent 60%);
+      pointer-events:none;
+      z-index:0;
+    }
+    .card > *{ position:relative; z-index:1; }
+
+    .tierHead{
+      display:flex;
+      gap:10px;
+      align-items:flex-start;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .tierTitle{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width: 240px;
+    }
+    h2{ margin:0; font-size:16px; color:#d7e6ff; letter-spacing:.2px; }
+
+    .rangeChip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      color:var(--muted);
+      padding:6px 10px;
+      border:1px solid rgba(159,176,198,0.25);
+      border-radius:999px;
+      background: rgba(0,0,0,0.18);
+      width:fit-content;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:3px;
+      background: rgba(122,167,255,0.85);
+      border:1px solid rgba(255,255,255,0.16);
+      display:inline-block;
+    }
+    .desc{
+      margin-top:10px;
+      color:var(--muted);
+      line-height:1.4;
+      font-size:13px;
+    }
+    .bullets{
+      margin:10px 0 0;
+      padding-left: 18px;
+      color:var(--text);
+    }
+    .bullets li{
+      margin:6px 0;
+      color: rgba(233,240,251,0.88);
+      line-height:1.35;
+      font-size:13px;
+    }
+
+    /* Simple examples toggle */
+    .toggleRow{
+      margin-top:12px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      justify-content:space-between;
+      flex-wrap:wrap;
+    }
+    .toggleLabel{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:13px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .toggleLabel input{
+      width:auto;
+      margin:0;
+      transform: translateY(1px);
+      accent-color: rgba(122,167,255,0.9);
+    }
+
+    .examplesBox{
+      margin-top:10px;
+      border:1px solid rgba(35,50,72,0.7);
+      border-radius:14px;
+      background: rgba(0,0,0,0.18);
+      padding:10px 12px;
+      display:none;
+    }
+    .examples{
+      margin:0;
+      padding-left:18px;
+      color: rgba(233,240,251,0.9);
+      font-size:13px;
+    }
+    .examples li{ margin:6px 0; }
+
+    .footer{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+      border:1px solid rgba(35,50,72,0.7);
+      border-radius:16px;
+      padding:12px 14px;
+      background: rgba(0,0,0,0.18);
+    }
+
+    /* color accents per tier */
+    .holy .dot{ background: rgba(255,107,139,0.85); }
+    .rare .dot{ background: rgba(255,204,102,0.85); }
+    .scarce .dot{ background: rgba(122,167,255,0.85); }
+    .uncommon .dot{ background: rgba(166,255,203,0.85); }
+    .common .dot{ background: rgba(159,176,198,0.85); }
+    .xcommon .dot{ background: rgba(202,160,255,0.85); }
+    .paper .dot{ background: rgba(255,170,90,0.85); }
+  </style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div>
+      <h1>Video Game Rarity Tiers <span class="pill">* Based on total copies sold *</span></h1>
+      <p class="sub">
+        A simple rarity scale with examples to assist with accurate game classification.<br>
+        Remember, when you see a game described as 'Rare': <font color="yellow">'Rare' is rarely rare!</font>
+      </p>
+    </div>
+    <div class="btnrow">
+      <button class="ghost" id="expandAll">Expand all examples</button>
+      <button class="ghost" id="collapseAll">Collapse all examples</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <section class="stack">
+
+    <!-- HOLY GRAIL -->
+    <article class="card holy">
+      <div class="tierHead">
+        <div class="tierTitle">
+          <h2>HOLY GRAIL</h2>
+          <div class="rangeChip"><span class="dot"></span> Under 1,000 copies</div>
+        </div>
+      </div>
+
+      <!-- <div class="desc">The 'you almost never see it' category.</div> -->
+      <ul class="bullets">
+        <li>Original production was extremely limited (e.g., competition prizes)</li>
+        <li>Distribution was disrupted or copies were destroyed, recalled, or never widely sold</li>
+      </ul>
+
+      <div class="toggleRow">
+        <label class="toggleLabel">
+          <input type="checkbox" class="exToggle">
+          Show examples
+        </label>
+      </div>
+      <div class="examplesBox">
+        <ul class="examples">
+          <li>Atari <i>Air Raid</i> Blue Cart (12-20 copies)</li>
+          <li>NES <i>Nintendo World Championships 1990</i> Gold Cart (26 copies)</li>
+          <li>NES <i>Nintendo World Championships 1990</i> Gray Cart (90-116 copies)</li>
+          <li>NES <i>Stadium Events</i> (200-300 copies)</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- RARE -->
+    <article class="card rare">
+      <div class="tierHead">
+        <div class="tierTitle">
+          <h2>RARE</h2>
+          <div class="rangeChip"><span class="dot"></span> 1,001-10,000 copies</div>
+        </div>
+      </div>
+
+      <ul class="bullets">
+        <li>Limited or interrupted production, often due to publisher collapse or poor early sales</li>
+        <li>Commercial release occurred, but in very small numbers</li>
+      </ul>
+
+      <div class="toggleRow">
+        <label class="toggleLabel">
+          <input type="checkbox" class="exToggle">
+          Show examples
+        </label>
+      </div>
+      <div class="examplesBox">
+        <ul class="examples">
+          <li>NES <i>Cheetahmen II</i> (1,500-2,000 copies)</li>
+          <li>NES <i>Bonk's Adventure</i> (~10,000 copies)</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- SCARCE -->
+    <article class="card scarce">
+      <div class="tierHead">
+        <div class="tierTitle">
+          <h2>SCARCE</h2>
+          <div class="rangeChip"><span class="dot"></span> 10,001-50,000 copies</div>
+        </div>
+      </div>
+
+      <ul class="bullets">
+        <li>Commercially released</li>
+        <li>But sold poorly, released late, or appealed to niche audiences</li>
+      </ul>
+
+      <div class="toggleRow">
+        <label class="toggleLabel">
+          <input type="checkbox" class="exToggle">
+          Show examples
+        </label>
+      </div>
+      <div class="examplesBox">
+        <ul class="examples">
+          <li>Genesis <i>Musha</i> (10k-15k copies)</li>
+          <li>NES <i>Little Samson</i> (10k-20k copies)</li>
+          <li>GBC <i>Shantae</i> (25k-40k copies)</li>
+          <li>NES <i>Mega Man 5</i> (~50k copies)</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- UNCOMMON -->
+    <article class="card uncommon">
+      <div class="tierHead">
+        <div class="tierTitle">
+          <h2>UNCOMMON</h2>
+          <div class="rangeChip"><span class="dot"></span> 50,001-100,000 copies</div>
+        </div>
+      </div>
+
+      <ul class="bullets">
+        <li>Mass-produced</li>
+        <li>But didn't sell well or had limited distribution windows</li>
+      </ul>
+
+      <div class="toggleRow">
+        <label class="toggleLabel">
+          <input type="checkbox" class="exToggle">
+          Show examples
+        </label>
+      </div>
+      <div class="examplesBox">
+        <ul class="examples">
+          <li>SNES <i>Mega Man 7</i> (70k-100k copies)</li>
+          <li>SNES <i>Final Fight Guy</i> (80k-100k copies)</li>
+          <li>SNES <i>Chrono Trigger</i> (~100k copies)</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- COMMON -->
+    <article class="card common">
+      <div class="tierHead">
+        <div class="tierTitle">
+          <h2>COMMON</h2>
+          <div class="rangeChip"><span class="dot"></span> 100,001-1,000,000 copies</div>
+        </div>
+      </div>
+
+      <ul class="bullets">
+        <li>Mass-market releases</li>
+        <li>Wide retail distribution, often for multiple years</li>
+      </ul>
+
+      <div class="toggleRow">
+        <label class="toggleLabel">
+          <input type="checkbox" class="exToggle">
+          Show examples
+        </label>
+      </div>
+      <div class="examplesBox">
+        <ul class="examples">
+          <li>SNES <i>Castlevania IV</i> (500k-700k copies)</li>
+          <li>SNES <i>Mega Man X</i> (~1m copies)</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- EXTREMELY COMMON -->
+    <article class="card xcommon">
+      <div class="tierHead">
+        <div class="tierTitle">
+          <h2>EXTREMELY COMMON</h2>
+          <div class="rangeChip"><span class="dot"></span> 1,000,000+ copies</div>
+        </div>
+      </div>
+
+      <ul class="bullets">
+        <li>Games that defined their systems</li>
+        <li>Only 'rare' when you isolate specific variants</li>
+      </ul>
+
+      <div class="toggleRow">
+        <label class="toggleLabel">
+          <input type="checkbox" class="exToggle">
+          Show examples
+        </label>
+      </div>
+      <div class="examplesBox">
+        <ul class="examples">
+          <li>NES <i>Super Mario Bros.</i> (40m copies)</li>
+          <li>SNES <i>Super Mario World</i> (20.6m copies)</li>
+          <li><i>Wii Sports</i> (82m copies)</li>
+        </ul>
+      </div>
+    </article>
+
+    <!-- PAPER RARE -->
+    <article class="card paper">
+      <div class="tierHead">
+        <div class="tierTitle">
+          <h2>PAPER RARE (aka 'Artificial Grail')</h2>
+          <div class="rangeChip"><span class="dot"></span> Generally under 2,000 copies</div>
+        </div>
+      </div>
+      <ul class="bullets">
+        <li>Purposfully manufactured with in low numbers to appeal to collectors.</li>
+        <li>Rare on paper, not due to gaming's organic chaos (such as recalls, weird distribution, destroyed stock, etc.).</li>
+      </ul>
+      <div class="toggleRow">
+        <label class="toggleLabel">
+          <input type="checkbox" class="exToggle">
+          Show examples
+        </label>
+      </div>
+      <div class="examplesBox">
+        <ul class="examples">
+          <li>Anything manufactured by Limited Run Games, Super Rare Games, Premium Edition Games, etc.</li>
+          <li>Homebrew/hobbyists produced games</li>
+          <li>PS4 <i>Poop Slinger</i> (84 copies)</li>
+          <li>SNES <i>Shadowhawk</i> (36 copies)</li>
+        </ul>
+      </div>
+    </article>
+
+  </section>
+
+  <section class="footer">
+    <b>Note:</b> Rarity classification can change depending on region, variant, condition, CIB/sealed, etc.<br>
+    For example, PS1 Final Fantasy X sold 5.3m units in North America, categorizing it as EXTREMELY COMMON. But the black-label "Square Enix" variant only sold between 500-800 copies, which puts it in the HOLY GRAIL category.<br>
+  </section>
+</main>
+
+<script>
+  function wireToggle(toggle){
+    const card = toggle.closest(".card");
+    const box = card.querySelector(".examplesBox");
+    toggle.addEventListener("change", () => {
+      box.style.display = toggle.checked ? "block" : "none";
+    });
+  }
+
+  const toggles = Array.from(document.querySelectorAll(".exToggle"));
+  toggles.forEach(wireToggle);
+
+  document.getElementById("expandAll").addEventListener("click", () => {
+    toggles.forEach(t => { t.checked = true; t.dispatchEvent(new Event("change")); });
+  });
+
+  document.getElementById("collapseAll").addEventListener("click", () => {
+    toggles.forEach(t => { t.checked = false; t.dispatchEvent(new Event("change")); });
+  });
+</script>
+</body>
+</html>
